@@ -168,26 +168,35 @@ def rank_and_deduplicate(
 
 
 def _call_gemini_rest(system_prompt: str, user_prompt: str, api_key: str) -> str:
-    model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+    import time
+    model = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash").removeprefix("models/")
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
     payload = {
         "system_instruction": {"parts": [{"text": system_prompt}]},
         "contents": [{"role": "user", "parts": [{"text": user_prompt}]}],
-        "generationConfig": {"temperature": 0.35, "maxOutputTokens": 1200},
+        "generationConfig": {"temperature": 0.35},
     }
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=25) as resp:
-        data = json.loads(resp.read().decode("utf-8"))
+    body_bytes = json.dumps(payload).encode("utf-8")
+    data: dict[str, Any] = {}
+    for attempt in range(4):
+        req = urllib.request.Request(
+            url, data=body_bytes, headers={"Content-Type": "application/json"}, method="POST"
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=35) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            break
+        except urllib.error.HTTPError as exc:
+            if exc.code in (429, 500, 503) and attempt < 3:
+                time.sleep(2.0 * (attempt + 1))
+                continue
+            raise
     candidates = data.get("candidates") or []
     parts = (candidates[0].get("content") or {}).get("parts") if candidates else None
-    if not parts or "text" not in parts[0]:
+    texts = [str(p["text"]) for p in (parts or []) if "text" in p and not p.get("thought")]
+    if not texts:
         raise RuntimeError(f"Gemini returned empty or blocked response: {data.get('promptFeedback', {})}")
-    return str(parts[0]["text"]).strip()
+    return "".join(texts).strip()
 
 
 def _call_openai_compat(system_prompt: str, user_prompt: str, api_key: str, base_url: str, model: str) -> str:
@@ -218,10 +227,11 @@ def _call_openai_compat(system_prompt: str, user_prompt: str, api_key: str, base
 
 
 def _fallback_caption(article: dict[str, str]) -> str:
+    clean_title = article["title"].rstrip("?!.")
     return (
-        f"Baca berita properti minggu ini soal {article['title']}?\n\n"
-        f"Laporan dari {article['source']} mengingatkan calon pembeli rumah untuk menghitung ulang "
-        "kesiapan finansial sebelum mengambil keputusan KPR tahun ini.\n\n"
+        "Sempat baca update berita properti dan KPR minggu ini?\n\n"
+        f"Sorotan dari {article['source']} tentang \"{clean_title}\" mengingatkan calon pembeli rumah "
+        "untuk menghitung ulang kesiapan finansial sebelum mengambil keputusan KPR tahun ini.\n\n"
         "Tiga langkah aman sebelum ajukan KPR:\n"
         "1. Jaga rasio total cicilan bulanan maksimal 30% dari penghasilan bersih agar arus kas tetap sehat.\n"
         "2. Siapkan dana pra-akad sekitar 8% sampai 12% dari harga rumah untuk BPHTB, notaris, provisi bank, dan asuransi.\n"
@@ -242,7 +252,7 @@ def generate_caption(article: dict[str, str], offline: bool = False) -> tuple[st
     try:
         gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
         if gemini_key:
-            return _call_gemini_rest(SYSTEM_PROMPT, user_prompt, gemini_key), os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+            return _call_gemini_rest(SYSTEM_PROMPT, user_prompt, gemini_key), os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
 
         openai_key = os.environ.get("OPENAI_API_KEY", "").strip() or os.environ.get("GROQ_API_KEY", "").strip()
         if openai_key:

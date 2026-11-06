@@ -21,7 +21,18 @@
       "typeVersion": 1.2,
       "position": [
         200,
-        300
+        220
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "node-manual-trigger",
+      "name": "Manual Trigger (Test Run)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        420
       ]
     },
     {
@@ -67,6 +78,9 @@
       "name": "Rumah123 Brand Caption Chain",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.4,
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 2500,
       "position": [
         940,
         300
@@ -74,16 +88,16 @@
     },
     {
       "parameters": {
-        "modelName": "models/gemini-2.5-flash",
+        "modelName": "models/gemini-3.5-flash",
         "options": {
           "temperature": 0.35,
-          "maxOutputTokens": 1200
+          "maxOutputTokens": 16384
         }
       },
       "id": "node-gemini-model",
-      "name": "Google Gemini 2.5 Flash",
+      "name": "Google Gemini 3.5 Flash",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "typeVersion": 1,
+      "typeVersion": 1.2,
       "position": [
         940,
         520
@@ -121,6 +135,17 @@
         ]
       ]
     },
+    "Manual Trigger (Test Run)": {
+      "main": [
+        [
+          {
+            "node": "Fetch Google News ID RSS (7d)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Fetch Google News ID RSS (7d)": {
       "main": [
         [
@@ -143,7 +168,7 @@
         ]
       ]
     },
-    "Google Gemini 2.5 Flash": {
+    "Google Gemini 3.5 Flash": {
       "ai_languageModel": [
         [
           {

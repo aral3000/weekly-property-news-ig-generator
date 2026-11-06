@@ -1,7 +1,7 @@
 {
-  "generated_at_utc": "2026-11-06T01:14:59Z",
+  "generated_at_utc": "2026-11-06T02:17:38Z",
   "rss_query": "(\"suku bunga KPR\" OR \"harga rumah\" OR \"pasar properti\" OR \"beli rumah\" OR \"rumah subsidi\") when:7d",
-  "raw_articles_fetched": 90,
+  "raw_articles_fetched": 93,
   "selected_count": 3,
   "posts": [
     {
@@ -14,20 +14,20 @@
         "snippet": "Harga Rumah Makin Mahal, Rumah Lelang-Rumah Bekas Jadi Alternatif? CNBC Indonesia",
         "relevance_score": 13
       },
-      "model_used": "groq:openai/gpt-oss-120b",
+      "model_used": "gemini-3.5-flash",
       "status": "READY_FOR_REVIEW",
       "quality_gate": {
         "passed": true,
         "metrics": {
-          "hook_words": 9,
-          "word_count": 145,
+          "hook_words": 11,
+          "word_count": 153,
           "hashtag_count": 5,
           "has_rumah123_mention": true,
           "uses_kamu_voice": true
         },
         "issues": []
       },
-      "instagram_caption": "Harga rumah melambung, tapi masih ada cara cerdas beli?\n\n1. Tetapkan batas cicilan maksimal 30% dari penghasilan bersih bulananmu, termasuk cicilan KPR, listrik, dan kebutuhan lain. Ini membantu hindari beban finansial berlebih.\n\n2. Saat menilai rumah lelang atau bekas, periksa kondisi fisik bangunan, dokumen kepemilikan (SHM/SHGB) dan izin mendirikan bangunan (IMB). Pastikan tidak ada sengketa atau tunggakan pajak.\n\n3. Siapkan dana tambahan 8 sampai 10% untuk biaya notaris, BPHTB, dan provisi KPR. Hitung total biaya sebelum menandatangani akad agar tidak terkejut.\n\nGunakan fitur Simulasi KPR di Rumah123 untuk menghitung estimasi cicilan berdasarkan harga, DP, suku bunga, dan tenor yang kamu pilih. Kamu juga bisa filter rumah lelang atau bekas di aplikasi, sesuaikan lokasi dan bujet.\n\nA atau B: Lebih nyaman cari rumah baru yang siap huni atau rumah lelang yang butuh renovasi? Tulis pilihanmu di komentar, dan jangan lupa save postingan ini untuk referensi nanti!\n\n#Rumah123 #KPR #RumahLelang #PropertiIndonesia #TipsBeliRumah"
+      "instagram_caption": "Harga rumah baru makin meroket, mending lirik rumah bekas atau lelang?\n\nOpsi rumah bekas atau lelang memang bisa lebih ramah di kantong, tapi kamu tetap harus cermat sebelum beli.\n\n1. Cek legalitas dan kondisi fisik. Pastikan status dokumen seperti SHM dan IMB jelas. Untuk rumah lelang, pastikan juga bangunan tidak dalam sengketa atau masih dihuni pemilik lama.\n\n2. Siapkan dana ekstra pra-akad. Selain uang muka, alokasikan sekitar 8 persen hingga 10 persen dari harga rumah untuk biaya BPHTB, notaris, dan provisi KPR.\n\n3. Atur cicilan aman. Batasi total cicilan KPR maksimal 30 persen dari penghasilan bersih bulanan agar keuangan tetap sehat.\n\nBiar tidak bingung menghitung angsuran bulanan, manfaatkan fitur Simulasi KPR Rumah123. Kamu juga bisa gunakan filter pencarian di Rumah123 untuk menemukan rumah bekas berkualitas sesuai lokasi dan bujet.\n\nKalau disuruh pilih sekarang, kamu lebih tertarik berburu rumah bekas (A) atau rumah lelang (B)?\n\nSimpan postingan ini buat pengingat rencana berburu rumah kamu!\n\n#Rumah123 #KPRRumah #RumahBekas #RumahLelang #TipsProperti"
     },
     {
       "slot": 2,
@@ -39,20 +39,20 @@
         "snippet": "KPR Subsidi 2026: Segini Batas Gaji dan Harga Rumah yang Bisa Dibeli Masyarakat Trenggalek Njenggelek",
         "relevance_score": 13
       },
-      "model_used": "groq:openai/gpt-oss-120b",
+      "model_used": "gemini-3.5-flash",
       "status": "READY_FOR_REVIEW",
       "quality_gate": {
         "passed": true,
         "metrics": {
-          "hook_words": 13,
-          "word_count": 177,
+          "hook_words": 11,
+          "word_count": 139,
           "hashtag_count": 5,
           "has_rumah123_mention": true,
           "uses_kamu_voice": true
         },
         "issues": []
       },
-      "instagram_caption": "Penasaran batas gaji dan harga rumah yang bisa kamu dapat lewat KPR subsidi?\n\nKPR subsidi 2026 kembali dibuka, tapi syaratnya tak selalu sama untuk tiap wilayah dan status pernikahan.\n\nDengan memahami batasan ini, kamu bisa menghindari beban cicilan berlebih dan fokus pada rumah yang memang terjangkau.\n\n1. Hitung dulu maksimal cicilan: idealnya tidak lebih dari 30% penghasilan bersih bulanan, termasuk bunga dan tenor yang kamu pilih. Jika cicilan melebihi angka itu, pertimbangkan menambah DP atau memperpanjang tenor.\n\n2. Cek kelayakan gaji dan plafon harga rumah di daerahmu lewat simulasi KPR Rumah123, sehingga kamu tahu rumah mana yang masuk dalam batas subsidi. Fitur filter harga dan tipe properti di Rumah123 memudahkan kamu menemukan pilihan yang sesuai budget.\n\n3. Siapkan dana awal 8-10% untuk biaya notaris, BPHTB, dan provisi bank, serta pastikan dokumen SHM/IMB rumah bersih sebelum tanda tangan. Jangan lupa cek riwayat SLIK OJK untuk memastikan tidak ada catatan kredit macet.\n\nKamu lebih suka cari rumah baru lewat filter lokasi atau rumah seken dengan harga terjangkau? Pilih A atau B di komentar, dan jangan lupa save postingan ini!\n\n#Rumah123 #KPRSubsidi #BeliRumah #TipsProperti #FinansialCerdas"
+      "instagram_caption": "Bermimpi punya rumah pertama tapi khawatir gaji belum masuk kriteria subsidi?\n\nAturan KPR subsidi memang kerap diperbarui. Batas gaji MBR biasanya membedakan status lajang dan menikah, serta disesuaikan dengan zona wilayah tempat tinggal kamu.\n\nSebelum mendaftar, pastikan kamu melakukan tiga hal penting ini:\n\n1. Cek riwayat kredit di SLIK OJK agar berkas kamu tidak tertahan saat verifikasi bank.\n\n2. Siapkan dana pra-akad sekitar 8% sampai 10% untuk mengover BPHTB, akta notaris, dan biaya provisi.\n\n3. Batasi cicilan maksimal 30% dari penghasilan bersih bulanan agar kebutuhan harian tetap terpenuhi.\n\nKamu bisa gunakan fitur Simulasi KPR Rumah123 untuk menghitung estimasi angsuran sesuai kantong. Mau cari rumah subsidi atau komersil terjangkau? Gunakan filter pencarian di Rumah123.\n\nLebih pilih mana, opsi A: rumah subsidi di pinggir kota, atau B: rumah seken dekat pusat kota? Tulis jawabanmu di komentar dan save postingan ini sekarang!\n\n#Rumah123 #KPRSubsidi #TipsBeliRumah #InfoKPR #RumahPertama"
     },
     {
       "slot": 3,
@@ -64,20 +64,20 @@
         "snippet": "Penjualan rumah turun 9% karena suku bunga KPR naik di atas 7%, cicilan bulanan naik 13%. Pluang",
         "relevance_score": 11
       },
-      "model_used": "groq:openai/gpt-oss-120b",
+      "model_used": "gemini-3.5-flash",
       "status": "READY_FOR_REVIEW",
       "quality_gate": {
         "passed": true,
         "metrics": {
-          "hook_words": 10,
-          "word_count": 140,
+          "hook_words": 12,
+          "word_count": 146,
           "hashtag_count": 5,
           "has_rumah123_mention": true,
           "uses_kamu_voice": true
         },
         "issues": []
       },
-      "instagram_caption": "Kenapa penjualan rumah turun 9% saat suku bunga KPR melambung?\n\nKenaikan suku bunga di atas 7% memang bikin cicilan naik sekitar 13%, sehingga banyak calon pembeli menahan langkah.\n\n1. Jaga cicilan maksimal 30% dari penghasilan bersih bulananmu, supaya beban keuangan tetap nyaman.\n\n2. Pertimbangkan menambah DP menjadi 20-30% untuk menurunkan tenor atau suku bunga yang ditawarkan bank.\n\n3. Hitung total biaya tambahan seperti BPHTB, notaris, dan provisi KPR sebelum tanda tangan akad, agar tidak terkejut di akhir.\n\nGunakan fitur Simulasi KPR Rumah123 untuk coba skenario cicilan berdasarkan harga rumah, DP, suku bunga, dan tenor yang kamu pilih. Kamu juga bisa pakai filter pencarian rumah baru atau seken sesuai lokasi dan bujet di aplikasi kami.\n\nA atau B: Lebih milih menunggu suku bunga turun atau tetap beli dengan DP lebih besar? Tulis pilihanmu di komentar, dan jangan lupa simpan postingan ini!\n\n#Rumah123 #KPR #SukuBunga #Cicilan #PropertiIndonesia"
+      "instagram_caption": "Suku bunga KPR tembus 7 persen, apakah mending tunda beli rumah dulu?\n\nBerita terbaru mencatat penjualan rumah turun 9 persen akibat kenaikan bunga KPR yang bikin estimasi cicilan melonjak hingga 13 persen. Agar keuangan kamu tetap stabil, lakukan 3 persiapan wajib ini.\n\n1. Batasi total cicilan maksimal 30 persen dari penghasilan bersih bulanan kamu supaya pengeluaran rutin tidak terganggu.\n\n2. Siapkan dana pra akad sekitar 8 sampai 10 persen dari harga rumah untuk mengover biaya BPHTB, notaris, serta provisi.\n\n3. Rutin cek riwayat kredit di SLIK OJK sejak awal untuk memastikan skor finansial kamu bersih dari tunggakan.\n\nBiar punya gambaran jelas, kamu bisa manfaatkan fitur Simulasi KPR Rumah123 untuk merinci estimasi cicilan berdasarkan suku bunga dan tenor pilihan.\n\nDi tengah lonjakan bunga KPR saat ini, kamu tim A. Tetap maju beli rumah atau B. Nahan dulu sambil nambah DP?\n\nTulis di komentar dan simpan postingan ini!\n\n#Rumah123 #KPRRumah #BungaKPR #SimulasiKPR #TipsProperti"
     }
   ]
 }
