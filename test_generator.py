@@ -104,7 +104,7 @@ class TestWeeklyIGGenerator(unittest.TestCase):
         from pathlib import Path
         raw = Path(__file__).with_name("workflow.json").read_text(encoding="utf-8")
         wf = json.loads(raw)
-        self.assertEqual(len(wf["nodes"]), 7)
+        self.assertEqual(len(wf["nodes"]), 8)
         self.assertNotIn("apiKey=", raw)
         self.assertIsNone(re.search(r"[0-9a-f]{32}", raw))
 

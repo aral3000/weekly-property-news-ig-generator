@@ -3,7 +3,7 @@
 Automated weekly content pipeline that ingests Indonesian property and mortgage (KPR) news from the past 7 days, filters syndicated duplicates and off-topic noise, generates plain-text Instagram captions in the `@rumah123com` voice, and validates every draft through a deterministic quality gate before human review.
 
 Ships in two synchronized runtimes sharing identical filtering, prompts, and linting rules:
-1. [`workflow.json`](workflow.json): Importable **n8n** workflow (`Schedule + Manual Trigger` -> `RSS Feed Read` -> `Code` -> `Basic LLM Chain + Google Gemini 3.5 Flash` -> `Quality Gate Code`).
+1. [`workflow.json`](workflow.json): Importable **n8n** workflow (`Schedule + Manual Trigger` -> `RSS Feed Read` -> `Code` -> `Basic LLM Chain + Gemini 3 Flash (Primary) + Gemini 3.5 Flash-Lite (Fallback)` -> `Quality Gate Code`).
 2. [`generator.py`](generator.py): Zero-dependency **Python 3 stdlib** CLI mirroring the exact n8n pipeline for CI testing, prompt regression checks, and headless runs.
 
 ## Pipeline Architecture
@@ -54,9 +54,9 @@ Ships in two synchronized runtimes sharing identical filtering, prompts, and lin
    - *Issue*: RSS feeds only supply headlines, not full article bodies. Unconstrained LLMs invented survey numbers or assumed "Yes" on question-mark headlines (*"RI Termasuk?"*), drifted into stiff `"Anda"` pronouns, and leaked `**Markdown**` asterisks onto Instagram.
    - *Fix*: Added explicit epistemic rules in `SYSTEM_PROMPT` (never assume unverified article conclusions; note regional/marital rules on KPR Subsidi income caps) and built `lint_caption()` as a hard post-generation gate.
 
-5. **Gemini 3.5 Flash Thinking-Token Truncation & HTTP 503 Spikes**
-   - *Issue*: Google deprecated `models/gemini-2.5-flash` (`HTTP 404`) for new keys in favor of `models/gemini-3.5-flash`. Because `gemini-3.5-flash` counts internal reasoning (`thoughtsTokenCount`) against `maxOutputTokens`, a legacy `1200`-`2048` cap truncated captions mid-sentence when reasoning exceeded 1,500 tokens, and free-tier bursts occasionally hit transient `HTTP 503`.
-   - *Fix*: Upgraded `lmChatGoogleGemini` (`typeVersion: 1.2`) to `models/gemini-3.5-flash` with `maxOutputTokens: 16384`, enabled node-level `retryOnFail` (`maxTries: 4`, `waitBetweenTries: 2500`), and mirrored exponential HTTP `429/503` backoff in `generator.py`.
+5. **Gemini Reasoning Truncation & Free-Tier 20 RPD Quota Exhaustion (`HTTP 429`)**
+   - *Issue*: Google deprecated `models/gemini-2.5-flash` (`HTTP 404`) for new keys, while Gemini 3.x thinking models count internal `thoughtsTokenCount` against `maxOutputTokens` (truncating captions under legacy `1200`-`2048` caps) and enforce a strict **20 requests/day per-model Free Tier quota** (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`). Back-to-back test runs exhausted the 20/day primary quota on item 3.
+   - *Fix*: Enabled `needsFallback: true` on `Basic LLM Chain` (`Rumah123 Brand Caption Chain`), wiring `models/gemini-3-flash-preview` (`maxOutputTokens: 16384`) as Primary and high-throughput `models/gemini-3.5-flash-lite` as Quota Fallback on the same `Google Gemini API Key` credential, mirrored identically in `generator.py`.
 
 ## Quick Start
 
@@ -78,7 +78,7 @@ python generator.py --offline --output sample_outputs.json
 ### Option 2: Import into n8n
 
 1. Open n8n -> **Workflows** -> **Import from File** -> select [`workflow.json`](workflow.json).
-2. Open the **Google Gemini 3.5 Flash** node and select your `Google Gemini(PaLM) Api` credential.
+2. Open the **Google Gemini 3 Flash (Primary)** and **Gemini 3.5 Flash-Lite (Quota Fallback)** nodes and select your `Google Gemini(PaLM) Api` credential.
 3. Click **Test Workflow** to inspect the ranked RSS items, generated captions, and quality gate metrics.
 
 ## Running Unit Tests

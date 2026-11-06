@@ -167,36 +167,43 @@ def rank_and_deduplicate(
     return [{k: v for k, v in item.items() if k != "_tokens"} for item in selected]
 
 
-def _call_gemini_rest(system_prompt: str, user_prompt: str, api_key: str) -> str:
+def _call_gemini_rest(system_prompt: str, user_prompt: str, api_key: str) -> tuple[str, str]:
     import time
-    model = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash").removeprefix("models/")
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+    primary = os.environ.get("GEMINI_MODEL", "gemini-3-flash-preview").removeprefix("models/")
+    models_to_try = [primary] + (["gemini-3.5-flash-lite"] if primary != "gemini-3.5-flash-lite" else [])
     payload = {
         "system_instruction": {"parts": [{"text": system_prompt}]},
         "contents": [{"role": "user", "parts": [{"text": user_prompt}]}],
         "generationConfig": {"temperature": 0.35},
     }
     body_bytes = json.dumps(payload).encode("utf-8")
-    data: dict[str, Any] = {}
-    for attempt in range(4):
-        req = urllib.request.Request(
-            url, data=body_bytes, headers={"Content-Type": "application/json"}, method="POST"
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=35) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-            break
-        except urllib.error.HTTPError as exc:
-            if exc.code in (429, 500, 503) and attempt < 3:
-                time.sleep(2.0 * (attempt + 1))
-                continue
-            raise
-    candidates = data.get("candidates") or []
-    parts = (candidates[0].get("content") or {}).get("parts") if candidates else None
-    texts = [str(p["text"]) for p in (parts or []) if "text" in p and not p.get("thought")]
-    if not texts:
-        raise RuntimeError(f"Gemini returned empty or blocked response: {data.get('promptFeedback', {})}")
-    return "".join(texts).strip()
+    last_exc: Exception | None = None
+    for model in models_to_try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+        for attempt in range(2):
+            req = urllib.request.Request(
+                url, data=body_bytes, headers={"Content-Type": "application/json"}, method="POST"
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=35) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                candidates = data.get("candidates") or []
+                parts = (candidates[0].get("content") or {}).get("parts") if candidates else None
+                texts = [str(p["text"]) for p in (parts or []) if "text" in p and not p.get("thought")]
+                if not texts:
+                    raise RuntimeError(f"Gemini returned empty or blocked response: {data.get('promptFeedback', {})}")
+                return "".join(texts).strip(), model
+            except urllib.error.HTTPError as exc:
+                last_exc = exc
+                if exc.code == 429:
+                    break  # Daily/per-model quota exhausted: switch immediately to fallback model
+                if exc.code in (500, 503) and attempt == 0:
+                    time.sleep(2.0)
+                    continue
+                break
+    if last_exc:
+        raise last_exc
+    raise RuntimeError("All Gemini models failed")
 
 
 def _call_openai_compat(system_prompt: str, user_prompt: str, api_key: str, base_url: str, model: str) -> str:
@@ -252,7 +259,7 @@ def generate_caption(article: dict[str, str], offline: bool = False) -> tuple[st
     try:
         gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
         if gemini_key:
-            return _call_gemini_rest(SYSTEM_PROMPT, user_prompt, gemini_key), os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
+            return _call_gemini_rest(SYSTEM_PROMPT, user_prompt, gemini_key)
 
         openai_key = os.environ.get("OPENAI_API_KEY", "").strip() or os.environ.get("GROQ_API_KEY", "").strip()
         if openai_key:

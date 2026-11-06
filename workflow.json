@@ -66,6 +66,7 @@
       "parameters": {
         "promptType": "define",
         "text": "=Judul berita minggu ini: {{ $json.title }}\nMedia sumber: {{ $json.source }}\nTanggal publikasi: {{ $json.published_at }}\n\nTulis 1 caption Instagram Rumah123 berbahasa Indonesia sesuai seluruh aturan sistem. Langsung keluarkan teks caption tanpa kata pengantar.",
+        "needsFallback": true,
         "messages": {
           "messageValues": [
             {
@@ -79,8 +80,8 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.4,
       "retryOnFail": true,
-      "maxTries": 4,
-      "waitBetweenTries": 2500,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
       "position": [
         940,
         300
@@ -88,19 +89,42 @@
     },
     {
       "parameters": {
-        "modelName": "models/gemini-3.5-flash",
+        "modelName": "models/gemini-3-flash-preview",
         "options": {
           "temperature": 0.35,
           "maxOutputTokens": 16384
         }
       },
       "id": "node-gemini-model",
-      "name": "Google Gemini 3.5 Flash",
+      "name": "Google Gemini 3 Flash (Primary)",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1.2,
       "position": [
-        940,
-        520
+        880,
+        540
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CONFIGURE_IN_N8N_CREDENTIALS",
+          "name": "Google Gemini API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {
+          "temperature": 0.35,
+          "maxOutputTokens": 4096
+        }
+      },
+      "id": "node-gemini-fallback",
+      "name": "Gemini 3.5 Flash-Lite (Quota Fallback)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1080,
+        540
       ],
       "credentials": {
         "googlePalmApi": {
@@ -168,13 +192,24 @@
         ]
       ]
     },
-    "Google Gemini 3.5 Flash": {
+    "Google Gemini 3 Flash (Primary)": {
       "ai_languageModel": [
         [
           {
             "node": "Rumah123 Brand Caption Chain",
             "type": "ai_languageModel",
             "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini 3.5 Flash-Lite (Quota Fallback)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Rumah123 Brand Caption Chain",
+            "type": "ai_languageModel",
+            "index": 1
           }
         ]
       ]
