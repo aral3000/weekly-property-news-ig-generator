@@ -1,0 +1,173 @@
+{
+  "name": "Rumah123 Weekly Property News IG Post Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "node-schedule-trigger",
+      "name": "Schedule Trigger (Mon 08:00 WIB)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=%28%22suku+bunga+KPR%22+OR+%22harga+rumah%22+OR+%22pasar+properti%22+OR+%22beli+rumah%22+OR+%22rumah+subsidi%22%29+when%3A7d&hl=id&gl=ID&ceid=ID:id",
+        "options": {}
+      },
+      "id": "node-rss-google-news",
+      "name": "Fetch Google News ID RSS (7d)",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const stopwords = new Set(['yang','dan','di','ke','dari','ini','itu','untuk','pada','dengan','atau','jadi','bisa','akan','ada','dalam','saat','para','oleh','apakah','kenapa','mengapa','bagaimana','masih','makin','terus','lebih','kian','buka','membuka','peluang','alasan','alasannya']);\nconst negative = ['australia','portugal','vietnam','amerika','inggris','jepang','china','10 negara','zuckerberg','bezos','musk','artis','seleb','suami','istri','cerai','pesawat','penerbangan','kendaraan listrik','mobil listrik','kripto'];\nconst positive = {'kpr':4,'suku bunga':4,'cicilan':3,'subsidi':3,'rumah bekas':3,'rumah lelang':3,'gaji':3,'harga rumah':3,'pasar properti':3,'bphtb':3,'ppn dtp':3,'dp':2,'bank':2,'kredit':2,'sewa':2,'ngontrak':2,'pekerja muda':2,'milenial':2,'gen z':2,'jakarta':2,'bekasi':2,'bogor':2,'depok':2,'tangerang':2,'ri':2};\nconst trusted = new Set(['cnbc indonesia','kompas.com','bisnis.com','kontan.co.id','investor.id','detikcom','detikfinance','kumparan','tempo.co','liputan6.com','antaranews.com']);\nconst hasWord = (text, kw) => new RegExp(`\\\\b${kw.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}\\\\b`, 'i').test(text);\n\nfunction tokenize(title) {\n  const matches = title.toLowerCase().match(/\\d+(?:[.,]\\d+)?|[a-z]{3,}/g) || [];\n  return new Set(matches.filter(t => !stopwords.has(t)));\n}\n\nfunction jaccard(a, b) {\n  if (!a.size || !b.size) return 0;\n  let inter = 0;\n  for (const x of a) if (b.has(x)) inter++;\n  return inter / (a.size + b.size - inter);\n}\n\nconst scored = [];\nfor (const item of $input.all()) {\n  const rawTitle = (item.json.title || '').replace(/&quot;/g, '\"').replace(/&amp;/g, '&').replace(/&#39;|&apos;/g, \"'\").trim();\n  const parts = rawTitle.split(' - ');\n  const source = parts.length > 1 ? parts[parts.length - 1].trim() : 'Google News';\n  const title = parts.length > 1 ? parts.slice(0, -1).join(' - ').trim() : rawTitle;\n  const hay = `${title} ${source}`.toLowerCase();\n  if (negative.some(neg => hasWord(hay, neg))) continue;\n  let score = 0;\n  for (const [kw, w] of Object.entries(positive)) {\n    if (hasWord(hay, kw)) score += w;\n  }\n  if (trusted.has(source.toLowerCase())) score += 4;\n  if (score > 0 && title) {\n    scored.push({\n      title,\n      source,\n      published_at: item.json.pubDate || item.json.isoDate || '',\n      url: item.json.link || '',\n      relevance_score: score,\n      _tokens: tokenize(title)\n    });\n  }\n}\n\nscored.sort((a, b) => b.relevance_score - a.relevance_score);\nconst selected = [];\nconst outletCounts = {};\nfor (const cand of scored) {\n  const key = cand.source.toLowerCase();\n  if ((outletCounts[key] || 0) >= 2) continue;\n  const isDup = selected.some(s => jaccard(cand._tokens, s._tokens) >= 0.32);\n  if (!isDup) {\n    selected.push(cand);\n    outletCounts[key] = (outletCounts[key] || 0) + 1;\n  }\n  if (selected.length >= 3) break;\n}\n\nreturn selected.map(({ _tokens, ...rest }, i) => ({ json: { slot: i + 1, ...rest } }));"
+      },
+      "id": "node-dedup-rank",
+      "name": "Deduplicate & Rank Top 3 (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Judul berita minggu ini: {{ $json.title }}\nMedia sumber: {{ $json.source }}\nTanggal publikasi: {{ $json.published_at }}\n\nTulis 1 caption Instagram Rumah123 berbahasa Indonesia sesuai seluruh aturan sistem. Langsung keluarkan teks caption tanpa kata pengantar.",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Kamu adalah Content Strategist dan Edukator Properti untuk akun Instagram resmi Rumah123 (@rumah123com).\nTugasmu: mengubah 1 headline berita properti/KPR mingguan di Indonesia menjadi caption Instagram edukatif yang siap tayang.\n\nAturan wajib:\n1. Kejujuran sumber: input berasal dari RSS headline (judul, media, tanggal tayang), bukan isi artikel penuh. Jika judul berupa kalimat tanya (misalnya \"RI Termasuk?\"), JANGAN mengklaim kesimpulan isi artikel yang belum dibaca. DILARANG mengarang angka survei, persentase, atau batas gaji tunggal tanpa konteks aturan wilayah dan status pernikahan (misalnya batas gaji MBR KPR Subsidi berbeda antara lajang/menikah serta zona wilayah).\n2. Sapaan dan bahasa: wajib gunakan sapaan akrab \"kamu\" (DILARANG memakai kata kaku \"Anda\"). Gunakan bahasa Indonesia yang luwes, tajam, dan natural bagi pembeli rumah usia 24-38 tahun.\n3. Format plain-text Instagram: DILARANG memakai tanda bintang Markdown (**teks**), pagar heading (#), bullet bintang (*), karakter em-dash, maupun tanda hubung ganda (--). Gunakan penomoran 1., 2., 3. dan baris kosong antarparagraf.\n4. Hook baris pertama: maksimal 14 kata, kalimat tanya atau kontras tajam agar pembaca klik tombol \"more\" sebelum batas 125 karakter.\n5. Isi edukasi: berikan 3 poin praktis yang relevan dengan topik berita (misalnya batas aman cicilan maksimal 30% penghasilan bersih bulanan, cek fisik bangunan dan dokumen SHM/IMB saat beli rumah seken atau lelang, persiapan dana pra-akad 8%-10% untuk BPHTB/notaris/provisi KPR, atau pengecekan riwayat SLIK OJK).\n6. Integrasi produk: sebutkan secara natural fitur nyata di Rumah123 yang relevan (seperti fitur Simulasi KPR Rumah123 untuk hitung estimasi cicilan dari harga, DP, suku bunga, dan tenor, atau filter pencarian rumah seken dan rumah baru sesuai lokasi dan bujet).\n7. Call to Action (CTA): tutup dengan pertanyaan pilihan A vs B yang memancing diskusi di kolom komentar, ditambah ajakan save postingan.\n8. Panjang dan hashtag: total 135 sampai 205 kata (di luar hashtag), ditutup tepat 5 hashtag relevan diawali #Rumah123.\n9. Larangan klise AI: hindari frasa \"hunian impian\", \"kabar gembira\", \"solusi terbaik\", \"di era modern\", atau \"jangan lewatkan\"."
+            }
+          ]
+        }
+      },
+      "id": "node-brand-caption-chain",
+      "name": "Rumah123 Brand Caption Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        940,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {
+          "temperature": 0.35,
+          "maxOutputTokens": 1200
+        }
+      },
+      "id": "node-gemini-model",
+      "name": "Google Gemini 2.5 Flash",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        940,
+        520
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CONFIGURE_IN_N8N_CREDENTIALS",
+          "name": "Google Gemini API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ranked = $('Deduplicate & Rank Top 3 (Code)').all();\nreturn $input.all().map((item, idx) => {\n  let text = (item.json.text || item.json.response || '').replace(/\\*\\*/g, '').replace(/__/g, '');\n  text = text.replace(/\\u202f/g, '').replace(/\\u00a0/g, ' ').replace(/\\u2011/g, '-');\n  text = text.replace(/^#{1,6}\\s+/gm, '').replace(/^\\s*[\\*\\-]\\s+/gm, '• ');\n  text = text.replace(/^(\\d+\\.)([A-Za-z])/gm, '$1 $2').replace(/([a-z])(20\\d{2})\\b/g, '$1 $2');\n  text = text.replace(/\\u2014/g, ', ').replace(/\\u2013/g, '-').replace(/ -- /g, ', ');\n  text = text.replace(/,[ \\t]*,/g, ',').replace(/[ \\t]{2,}/g, ' ').replace(/\\n{3,}/g, '\\n\\n').trim();\n\n  const lines = text.split(/\\r?\\n/).map(l => l.trim()).filter(Boolean);\n  const hookWords = lines.length ? lines[0].split(/\\s+/).length : 0;\n  const hashtags = text.match(/#[A-Za-z0-9_]+/g) || [];\n  const bodyWithoutTags = text.replace(/#[A-Za-z0-9_]+/g, '').trim();\n  const wordCount = bodyWithoutTags ? bodyWithoutTags.split(/\\s+/).length : 0;\n  const hasBrand = bodyWithoutTags.toLowerCase().includes('rumah123');\n  const usesFormalAnda = /\\banda\\b/i.test(bodyWithoutTags);\n\n  const issues = [];\n  if (hookWords > 16) issues.push(`hook_too_long (${hookWords})`);\n  if (wordCount < 95 || wordCount > 250) issues.push(`word_count_out_of_range (${wordCount})`);\n  if (hashtags.length < 3 || hashtags.length > 6) issues.push(`hashtag_count_out_of_range (${hashtags.length})`);\n  if (!hasBrand) issues.push('missing_rumah123_mention');\n  if (usesFormalAnda) issues.push('formal_pronoun_anda');\n\n  const passed = issues.length === 0;\n  const src = ranked[idx] ? ranked[idx].json : {};\n  return {\n    json: {\n      slot: idx + 1,\n      source_article: src,\n      status: passed ? 'READY_FOR_REVIEW' : 'NEEDS_REVISION',\n      quality_gate: {\n        passed,\n        metrics: {\n          hook_words: hookWords,\n          word_count: wordCount,\n          hashtag_count: hashtags.length,\n          has_rumah123_mention: hasBrand,\n          uses_kamu_voice: !usesFormalAnda\n        },\n        issues\n      },\n      instagram_caption: text\n    }\n  };\n});"
+      },
+      "id": "node-quality-gate",
+      "name": "Caption Quality Gate (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1240,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger (Mon 08:00 WIB)": {
+      "main": [
+        [
+          {
+            "node": "Fetch Google News ID RSS (7d)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Google News ID RSS (7d)": {
+      "main": [
+        [
+          {
+            "node": "Deduplicate & Rank Top 3 (Code)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplicate & Rank Top 3 (Code)": {
+      "main": [
+        [
+          {
+            "node": "Rumah123 Brand Caption Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini 2.5 Flash": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Rumah123 Brand Caption Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rumah123 Brand Caption Chain": {
+      "main": [
+        [
+          {
+            "node": "Caption Quality Gate (Code)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
